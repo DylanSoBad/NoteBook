@@ -23,6 +23,16 @@ The original Sites version is preserved in `../web3-hq`. This version uses Next.
 - X actions are drafts, manual metrics, copy and opening X compose — not automatic posting.
 - Coin prices are on-demand CoinGecko quotes, not guaranteed real-time. Missing/stale quotes cannot silently replace manual values. Profit conversion snapshots remain unchanged after price refreshes.
 
-## Local development
+## AI X Writer
+
+- Uses your own server-side `OPENAI_API_KEY` (GPT-5 mini). Optional `GEMINI_API_KEY` (Gemini 2.5 Flash) is used only when no OpenAI key is configured. No Vercel AI Gateway, model switching on errors, or automatic credit purchase.
+- Add keys as Sensitive environment variables for Production in the Vercel project dashboard, then redeploy. Never paste keys into X writing inputs or commit them to source.
+- Run `node --env-file=.env.production.local scripts/migrate-ai.mjs` once for the atomic daily usage counter. Existing records are unchanged.
+- The owner can request three short English alternatives from a Vietnamese or English brief, pick degen/builder tone and provide source excerpts. AI never fetches supplied URLs or accesses other records.
+- Input is limited to 3,000 + 6,000 characters; output to 1,600 tokens; requests to 20/day in Vietnam time with a single in-flight lease. Failed provider requests also count. This is not a currency spend limit: configure billing limits with your API provider too.
+- Results are editable and transient until explicitly opened in the draft editor and saved. No automatic X posting. Factual accuracy and X's actual weighted character limits still require user review.
+- OpenAI requests use `store:false`. Provider-side retention/billing policies still apply; this is not a zero-retention guarantee.
+
+## Local environment
 
 Provide `DATABASE_URL`, `SESSION_SECRET` and `OWNER_PASSWORD_HASH` in `.env.local`; then run `npm run dev`. Do not connect automated tests to a database containing user data unless the tests use isolated IDs and clean up only their own records.

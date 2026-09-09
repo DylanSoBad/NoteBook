@@ -5,6 +5,7 @@ import './workspace.css';
 import './profit.css';
 import './coins.css';
 import './auth.css';
+import './ai-writer.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
