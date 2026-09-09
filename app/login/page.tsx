@@ -3,6 +3,8 @@ import {getOwner} from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 const errors: Record<string,string> = {
   invalid:'Phiên đăng nhập X không hợp lệ hoặc đã hết hạn. Bạn thử lại nhé.',
+  password:'Mật khẩu chưa đúng. Bạn thử lại nhé.',
+  limit:'Bạn đã thử nhiều lần. Vui lòng đợi 15 phút rồi thử lại.',
   token:'X từ chối kết nối ứng dụng. Kiểm tra lại Client ID và Client Secret OAuth 2.0 trên Vercel.',
   profile:'X chưa cho phép đọc hồ sơ tài khoản. Kiểm tra app X có quyền Read và OAuth 2.0 đã bật.',
   forbidden:'Tài khoản X này không có quyền truy cập Dylan HQ.',
@@ -16,8 +18,14 @@ export default async function Login({searchParams}: {searchParams: Promise<{erro
     <p className="loginkicker">@only__dylan · PRIVATE WORKSPACE</p>
     <h1>Back to building.</h1>
     <p className="logincopy">Lịch mint, công việc, nội dung X và profit của bạn — cùng một nơi.</p>
-    {error && <p role="alert" className="formerror">{errors[error] || errors.invalid}</p>}
+    <form action="/api/auth/login" method="post">
+      <label htmlFor="password">Mật khẩu của bạn</label>
+      <input id="password" name="password" type="password" autoComplete="current-password" required maxLength={256} autoFocus/>
+      {error && <p role="alert" className="formerror">{errors[error] || errors.invalid}</p>}
+      <button className="action primary" type="submit">Đăng nhập bằng mật khẩu ↗</button>
+    </form>
+    <div className="loginhint">hoặc</div>
     <a className="action primary" href="/api/auth/x">Đăng nhập bằng X ↗</a>
-    <p className="loginhint">Chỉ tài khoản X @only__dylan mới truy cập được dữ liệu.</p>
+    <p className="loginhint">Chỉ bạn và tài khoản X @only__dylan mới truy cập được dữ liệu.</p>
   </section></main>;
 }
