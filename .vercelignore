@@ -2,6 +2,8 @@ work
 .env*
 *.tsbuildinfo
 .git
+.vercel
+node_modules
 .next
 scripts
 README.md
