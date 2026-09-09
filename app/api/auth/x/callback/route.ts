@@ -34,13 +34,13 @@ export async function GET(request: Request) {
       body: new URLSearchParams({code, grant_type: 'authorization_code', redirect_uri: redirectUri, code_verifier: flow.verifier}),
       cache: 'no-store'
     });
-    if (!tokenResponse.ok) return clearFlow(back(origin, 'invalid'));
+    if (!tokenResponse.ok) return clearFlow(back(origin, 'token'));
     const token = await tokenResponse.json() as {access_token?: unknown};
-    if (typeof token.access_token !== 'string' || token.access_token.length > 4096) return clearFlow(back(origin, 'invalid'));
+    if (typeof token.access_token !== 'string' || token.access_token.length > 4096) return clearFlow(back(origin, 'token'));
     const userResponse = await fetch('https://api.x.com/2/users/me', {
       headers: {Authorization: `Bearer ${token.access_token}`}, cache: 'no-store'
     });
-    if (!userResponse.ok) return clearFlow(back(origin, 'invalid'));
+    if (!userResponse.ok) return clearFlow(back(origin, 'profile'));
     const user = await userResponse.json() as {data?: {id?: unknown; username?: unknown}};
     const username = typeof user.data?.username === 'string' ? user.data.username.toLowerCase() : '';
     const id = typeof user.data?.id === 'string' ? user.data.id : '';

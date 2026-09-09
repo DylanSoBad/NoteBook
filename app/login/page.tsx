@@ -3,6 +3,8 @@ import {getOwner} from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 const errors: Record<string,string> = {
   invalid:'Phiên đăng nhập X không hợp lệ hoặc đã hết hạn. Bạn thử lại nhé.',
+  token:'X từ chối kết nối ứng dụng. Kiểm tra lại Client ID và Client Secret OAuth 2.0 trên Vercel.',
+  profile:'X chưa cho phép đọc hồ sơ tài khoản. Kiểm tra app X có quyền Read và OAuth 2.0 đã bật.',
   forbidden:'Tài khoản X này không có quyền truy cập Dylan HQ.',
   unavailable:'Chưa kết nối được với X. Vui lòng thử lại sau.'
 };
