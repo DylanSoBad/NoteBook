@@ -27,6 +27,12 @@ export async function verifySession(token: string): Promise<boolean> {
   } catch { return false; }
 }
 export async function verifyPassword(password: string) {
+  const direct = process.env.OWNER_PASSWORD;
+  if (direct) {
+    const supplied = Buffer.from(password);
+    const expected = Buffer.from(direct);
+    return supplied.length === expected.length && timingSafeEqual(supplied, expected);
+  }
   const [salt, hex] = (process.env.OWNER_PASSWORD_HASH || '').split(':');
   if (!/^[a-f0-9]{32}$/.test(salt || '') || !/^[a-f0-9]{128}$/.test(hex || '')) {
     throw new Error('Password sign-in is not configured');
