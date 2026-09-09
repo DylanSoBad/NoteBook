@@ -1,0 +1,7 @@
+work
+.env*
+*.tsbuildinfo
+.git
+.next
+scripts
+README.md
