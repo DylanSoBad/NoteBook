@@ -2,9 +2,9 @@ import {redirect} from 'next/navigation';
 import {getOwner} from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 const errors: Record<string,string> = {
-  invalid:'Mật khẩu chưa đúng. Bạn thử lại nhé.',
-  limit:'Bạn đã thử nhiều lần. Vui lòng đợi 15 phút rồi thử lại.',
-  unavailable:'Chưa kết nối được hệ thống đăng nhập. Vui lòng thử lại sau.'
+  invalid:'Phiên đăng nhập X không hợp lệ hoặc đã hết hạn. Bạn thử lại nhé.',
+  forbidden:'Tài khoản X này không có quyền truy cập Dylan HQ.',
+  unavailable:'Chưa kết nối được với X. Vui lòng thử lại sau.'
 };
 export default async function Login({searchParams}: {searchParams: Promise<{error?:string}>}) {
   if (await getOwner()) redirect('/');
@@ -14,12 +14,8 @@ export default async function Login({searchParams}: {searchParams: Promise<{erro
     <p className="loginkicker">@only__dylan · PRIVATE WORKSPACE</p>
     <h1>Back to building.</h1>
     <p className="logincopy">Lịch mint, công việc, nội dung X và profit của bạn — cùng một nơi.</p>
-    <form action="/api/auth/login" method="post">
-      <label htmlFor="password">Mật khẩu của bạn</label>
-      <input id="password" name="password" type="password" autoComplete="current-password" required maxLength={256} autoFocus/>
-      {error && <p role="alert" className="formerror">{errors[error] || errors.invalid}</p>}
-      <button className="action primary" type="submit">Mở Dylan HQ ↗</button>
-    </form>
-    <p className="loginhint">Chỉ người có mật khẩu mới truy cập được dữ liệu.</p>
+    {error && <p role="alert" className="formerror">{errors[error] || errors.invalid}</p>}
+    <a className="action primary" href="/api/auth/x">Đăng nhập bằng X ↗</a>
+    <p className="loginhint">Chỉ tài khoản X @only__dylan mới truy cập được dữ liệu.</p>
   </section></main>;
 }
