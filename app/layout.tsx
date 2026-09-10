@@ -5,7 +5,7 @@ import './workspace.css';
 import './profit.css';
 import './coins.css';
 import './auth.css';
-import './ai-writer.css';
+import './t3-chat.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,8 +19,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Dylan HQ · Web3 daily workspace',
-  description: 'Lịch mint, công việc, target, ghi chú và nội dung X cho @only__dylan.',
-  robots: {index: false, follow: false},
+  description:
+    'Lịch mint, công việc, target, ghi chú và nội dung X cho @only__dylan.',
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({

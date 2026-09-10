@@ -44,7 +44,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import ProfitPanel, { MoneyField } from './profit-panel';
-import AIWriter from './ai-writer';
+import T3Chat from './t3-chat';
 import CoinCalculator from './coin-calculator';
 import WLPanel from './wl-panel';
 import './upgrade.css';
@@ -70,23 +70,6 @@ const postCategories = [
   'IRL / community',
   'Build in public',
   'Thread',
-];
-const templates = [
-  {
-    title: 'Builder take',
-    body: 'Spent [time] testing [product].\n\nThe part everyone talks about: [hype].\nThe part that actually matters: [observation].\n\nStill early. Back to building.',
-    category: 'Build in public',
-  },
-  {
-    title: 'Airdrop research',
-    body: 'Farming [project]? Here’s what I’m tracking:\n\n• Confirmed: [official information]\n• Cost / time: [estimate]\n• Still unknown: [uncertainty]\n\nMy play: [personal approach].\nSource: [official link]',
-    category: 'Airdrop research',
-  },
-  {
-    title: 'IRL recap',
-    body: 'Logged off. Met the people actually shipping.\n\n3 things from [event]:\n1. [observation]\n2. [lesson]\n3. [idea worth building]\n\nWho else was there?',
-    category: 'IRL / community',
-  },
 ];
 function Choice({
   value,
@@ -290,11 +273,6 @@ export default function Workspace() {
       `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, '0')}-01`,
     );
   }
-  const selectedPosts = records
-    .filter(
-      (r) => r.kind === 'post' && (filter === 'Tất cả' || r.status === filter),
-    )
-    .sort((a, b) => b.date.localeCompare(a.date));
   async function remove() {
     if (!deleting) return;
     setBusy(true);
@@ -571,7 +549,7 @@ export default function Workspace() {
           <TabsTrigger value="daily">Ngày của tôi</TabsTrigger>
           <TabsTrigger value="wl">WL Tracker</TabsTrigger>
           <TabsTrigger value="mint">Lịch mint</TabsTrigger>
-          <TabsTrigger value="x">X Studio</TabsTrigger>
+          <TabsTrigger value="chat">T3 Chat</TabsTrigger>
           <TabsTrigger value="airdrop">Airdrop</TabsTrigger>
           <TabsTrigger value="profit">Profit</TabsTrigger>
           <TabsTrigger value="coins">Coin Calculator</TabsTrigger>
@@ -742,8 +720,8 @@ export default function Workspace() {
                     Giọng của bạn: degen × builder.
                   </Empty>
                 )}
-                <button className="sectionlink" onClick={() => setTab('x')}>
-                  Mở X Studio <ArrowUpRight size={16} />
+                <button className="sectionlink" onClick={() => setTab('chat')}>
+                  Mở T3 Chat <ArrowUpRight size={16} />
                 </button>
               </Section>
               <section className="panel">
@@ -878,101 +856,8 @@ export default function Workspace() {
             )}
           </Section>
         </TabsContent>
-        <TabsContent value="x" keepMounted>
-          <div className="viewheading">
-            <div>
-              <h2>
-                X Studio <span className="handle">@only__dylan</span>
-              </h2>
-              <p className="subtle">
-                English content · Degen × builder · Lịch đăng & số liệu nhập tay
-              </p>
-            </div>
-            <button className="action primary" onClick={() => create('post')}>
-              <Plus size={17} /> Viết bài X
-            </button>
-          </div>
-          <AIWriter
-            onPick={(draft, topic) =>
-              setEditing({
-                ...blank('post', date),
-                title: draft.title,
-                body: draft.body,
-                category: topic,
-                status: 'Bản nháp',
-              })
-            }
-          />
-          <div className="templatebar">
-            <span>BẮT ĐẦU TỪ MẪU</span>
-            {templates.map((t) => (
-              <button
-                key={t.title}
-                onClick={() =>
-                  setEditing({
-                    ...blank('post', date),
-                    title: t.title,
-                    body: t.body,
-                    category: t.category,
-                    status: 'Bản nháp',
-                  })
-                }
-              >
-                {t.title}
-                <ArrowUpRight size={14} />
-              </button>
-            ))}
-          </div>
-          <div className="xsummary">
-            {['impressions', 'likes', 'replies', 'reposts', 'followers'].map(
-              (key, i) => (
-                <div key={key}>
-                  <strong>
-                    {records
-                      .filter(
-                        (r) => r.kind === 'post' && r.status === 'Đã đăng',
-                      )
-                      .reduce((s, r) => s + Number(r[key as keyof Entry]), 0)
-                      .toLocaleString()}
-                  </strong>
-                  <span>
-                    {
-                      [
-                        'Impressions',
-                        'Likes',
-                        'Replies',
-                        'Reposts',
-                        'Follows từ bài',
-                      ][i]
-                    }
-                  </span>
-                </div>
-              ),
-            )}
-          </div>
-          <div className="filterrow">
-            <h3>
-              Kho nội dung{' '}
-              <span className="subtle">· {selectedPosts.length} bài</span>
-            </h3>
-            <Choice
-              label="Lọc trạng thái bài X"
-              value={filter}
-              options={['Tất cả', ...states.post]}
-              onChange={setFilter}
-            />
-          </div>
-          <div className="postgrid">{selectedPosts.map(postCard)}</div>
-          {!selectedPosts.length && (
-            <Empty>
-              Chưa có bài trong nhóm này. Tạo nháp mới hoặc chọn một mẫu phía
-              trên.
-            </Empty>
-          )}
-          <p className="subtle">
-            “Đã lên lịch” là kế hoạch trong HQ. Mở bản nháp để sao chép hoặc
-            chuyển sang X đăng bài.
-          </p>
+        <TabsContent value="chat" keepMounted>
+          <T3Chat />
         </TabsContent>
         <TabsContent value="airdrop">
           <div className="viewheading">
