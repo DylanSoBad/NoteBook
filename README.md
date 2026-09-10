@@ -8,8 +8,8 @@ The original Sites version is preserved in `../web3-hq`. This version uses Next.
 2. Link a new Vercel project with `vercel link`.
 3. Connect a dedicated Neon Free database in Singapore. The owner must personally accept any Marketplace terms. No existing unrelated databases should be reused.
 4. Pull its database variables to the gitignored `.env.local` and run `npm run db:migrate`. Migration creates missing tables and preserves existing data.
-5. Run `node scripts/prepare-access.mjs` once. Keep `.vercel/LOGIN.txt` private and save the password in a password manager.
-6. `node scripts/configure-auth.mjs` adds production-only password hash and session secret through stdin. Never commit `.vercel` or `.env` files.
+5. In Vercel, add the Sensitive Production environment variables shown in `.env.example`. Use `OWNER_PASSWORD` for the private dashboard password. Never commit `.vercel` or `.env` files.
+6. Redeploy after changing any environment variable.
 7. `npm run build`, then `vercel deploy --prod`.
 
 ## Security and data
@@ -35,4 +35,4 @@ The original Sites version is preserved in `../web3-hq`. This version uses Next.
 
 ## Local environment
 
-Provide `DATABASE_URL`, `SESSION_SECRET` and `OWNER_PASSWORD_HASH` in `.env.local`; then run `npm run dev`. Do not connect automated tests to a database containing user data unless the tests use isolated IDs and clean up only their own records.
+Copy `.env.example` to `.env.local`, provide the required values, then run `npm run dev`. Do not connect automated tests to a database containing user data unless the tests use isolated IDs and clean up only their own records.
