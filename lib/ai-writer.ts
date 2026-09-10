@@ -12,6 +12,7 @@ export type WriterInput = {
   tone: (typeof aiTones)[number];
   topic: (typeof aiTopics)[number];
 };
+export type AIProvider = 'openai' | 'gemini' | 'xpiki';
 export type AIDraft = { title: string; body: string };
 export class WriterError extends Error {
   constructor(
@@ -87,40 +88,62 @@ export function parseDrafts(value: unknown): AIDraft[] {
 }
 export async function generateDrafts(
   input: WriterInput,
-  credential: { token: string; provider: 'openai' | 'gemini' },
+  credential: { token: string; provider: AIProvider },
   fetcher: typeof fetch = fetch,
 ): Promise<AIDraft[]> {
   const gemini = credential.provider === 'gemini';
-  const endpoint = gemini
-    ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
-    : 'https://api.openai.com/v1/responses';
-  const body = gemini
+  const xpiki = credential.provider === 'xpiki';
+  const endpoint = xpiki
+    ? 'https://api.xpiki.com/v1/chat/completions'
+    : gemini
+      ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
+      : 'https://api.openai.com/v1/responses';
+  const body = xpiki
     ? {
-        systemInstruction: { parts: [{ text: writerInstructions }] },
-        contents: [{ role: 'user', parts: [{ text: JSON.stringify(input) }] }],
-        generationConfig: {
-          maxOutputTokens: 1600,
-          thinkingConfig: { thinkingBudget: 0 },
-          responseMimeType: 'application/json',
-          responseJsonSchema: draftSchema,
-        },
-      }
-    : {
-        model: 'gpt-5-mini',
-        store: false,
-        instructions: writerInstructions,
-        input: JSON.stringify(input),
-        reasoning: { effort: 'minimal' },
-        max_output_tokens: 1600,
-        text: {
-          format: {
-            type: 'json_schema',
-            name: 'x_drafts',
-            strict: true,
-            schema: draftSchema,
+        model: 'claude-sonnet-4-6',
+        messages: [
+          { role: 'system', content: writerInstructions },
+          {
+            role: 'user',
+            content:
+              'Return one JSON object matching this schema exactly: ' +
+              JSON.stringify(draftSchema) +
+              '\n\nInput:\n' +
+              JSON.stringify(input),
           },
-        },
-      };
+        ],
+        max_tokens: 1600,
+        temperature: 0.9,
+      }
+    : gemini
+      ? {
+          systemInstruction: { parts: [{ text: writerInstructions }] },
+          contents: [
+            { role: 'user', parts: [{ text: JSON.stringify(input) }] },
+          ],
+          generationConfig: {
+            maxOutputTokens: 1600,
+            thinkingConfig: { thinkingBudget: 0 },
+            responseMimeType: 'application/json',
+            responseJsonSchema: draftSchema,
+          },
+        }
+      : {
+          model: 'gpt-5-mini',
+          store: false,
+          instructions: writerInstructions,
+          input: JSON.stringify(input),
+          reasoning: { effort: 'minimal' },
+          max_output_tokens: 1600,
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'x_drafts',
+              strict: true,
+              schema: draftSchema,
+            },
+          },
+        };
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -186,6 +209,25 @@ export async function generateDrafts(
         .map((v: { text: string }) => v.text)
         .join('');
       return parseDrafts(JSON.parse(text));
+    }
+    if (xpiki) {
+      const content = data.choices?.[0]?.message?.content;
+      const text = Array.isArray(content)
+        ? content
+            .filter(
+              (part: { type?: string; text?: string }) =>
+                part?.type === 'text' && typeof part.text === 'string',
+            )
+            .map((part: { text: string }) => part.text)
+            .join('')
+        : content;
+      if (typeof text !== 'string' || !text.trim())
+        throw new WriterError('AI chưa viết xong bản nháp. Hãy thử lại.');
+      const cleaned = text
+        .trim()
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```$/, '');
+      return parseDrafts(JSON.parse(cleaned));
     }
     if (data.status !== 'completed' || !Array.isArray(data.output))
       throw new WriterError('AI chưa viết xong bản nháp. Hãy thử lại.');

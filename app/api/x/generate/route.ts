@@ -4,6 +4,7 @@ import {
   generateDrafts,
   validateWriterInput,
   WriterError,
+  type AIProvider,
 } from '@/lib/ai-writer';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     return json({ error: 'Invalid origin' }, 403);
   let input;
   let suppliedKey = '';
-  let suppliedProvider: 'openai' | 'gemini' = 'openai';
+  let suppliedProvider: AIProvider = 'openai';
   try {
     const raw = await request.text();
     if (raw.length > 15000) throw new WriterError('Nội dung gửi quá dài.', 400);
@@ -57,10 +58,14 @@ export async function POST(request: Request) {
       throw new WriterError('API key không hợp lệ.', 400);
     if (
       payload.provider !== undefined &&
-      !['openai', 'gemini'].includes(String(payload.provider))
+      !['openai', 'gemini', 'xpiki'].includes(String(payload.provider))
     )
       throw new WriterError('Nhà cung cấp AI không hợp lệ.', 400);
-    suppliedProvider = payload.provider === 'gemini' ? 'gemini' : 'openai';
+    suppliedProvider = ['openai', 'gemini', 'xpiki'].includes(
+      String(payload.provider),
+    )
+      ? (payload.provider as AIProvider)
+      : 'openai';
   } catch (e) {
     return json(
       {
@@ -72,7 +77,12 @@ export async function POST(request: Request) {
   const configured = configuration();
   const token = suppliedKey || configured.token;
   const provider = suppliedKey ? suppliedProvider : configured.provider;
-  const model = provider === 'openai' ? 'GPT-5 mini' : 'Gemini 2.5 Flash';
+  const model =
+    provider === 'openai'
+      ? 'GPT-5 mini'
+      : provider === 'gemini'
+        ? 'Gemini 2.5 Flash'
+        : 'Claude Sonnet 4.6 via XPiKi';
   if (!token)
     return json(
       {

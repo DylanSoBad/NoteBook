@@ -18,6 +18,7 @@ import {
   aiTones,
   aiTopics,
   type AIDraft,
+  type AIProvider,
   type WriterInput,
 } from '@/lib/ai-writer';
 
@@ -30,7 +31,7 @@ export default function AIWriter({
   const [facts, setFacts] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [keyOpen, setKeyOpen] = useState(false);
-  const [provider, setProvider] = useState<'openai' | 'gemini'>('openai');
+  const [provider, setProvider] = useState<AIProvider>('openai');
   const [tone, setTone] = useState<WriterInput['tone']>('Degen × builder');
   const [topic, setTopic] = useState<WriterInput['topic']>('Web3 take');
   const [busy, setBusy] = useState(false);
@@ -180,9 +181,7 @@ export default function AIWriter({
                 <label id="ai-provider-label">Nhà cung cấp</label>
                 <Select
                   value={provider}
-                  onValueChange={(v) =>
-                    v && setProvider(v as 'openai' | 'gemini')
-                  }
+                  onValueChange={(v) => v && setProvider(v as AIProvider)}
                   disabled={busy}
                 >
                   <SelectTrigger aria-labelledby="ai-provider-label">
@@ -191,6 +190,7 @@ export default function AIWriter({
                   <SelectContent>
                     <SelectItem value="openai">OpenAI</SelectItem>
                     <SelectItem value="gemini">Gemini</SelectItem>
+                    <SelectItem value="xpiki">T3 / XPiKi</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -205,7 +205,7 @@ export default function AIWriter({
                   onChange={(e) => setApiKey(e.target.value)}
                   maxLength={512}
                   disabled={busy}
-                  placeholder={provider === 'openai' ? 'sk-…' : 'AIza…'}
+                  placeholder={provider === 'gemini' ? 'AIza…' : 'sk-…'}
                 />
               </label>
             </div>
