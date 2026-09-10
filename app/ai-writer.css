@@ -96,10 +96,11 @@
   padding: 0.65rem 0.8rem;
   background: #11170f;
 }
-.aikeydetails summary {
-  cursor: pointer;
-  color: #c8f68a;
-  font-size: 0.875rem;
+.aikeyaction {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.8rem;
 }
 .aikeyrow {
   display: grid;

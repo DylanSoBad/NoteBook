@@ -1,6 +1,12 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Sparkles, ArrowUpRight, Copy, LoaderCircle } from 'lucide-react';
+import {
+  Sparkles,
+  ArrowUpRight,
+  Copy,
+  LoaderCircle,
+  KeyRound,
+} from 'lucide-react';
 import {
   Select,
   SelectTrigger,
@@ -23,6 +29,7 @@ export default function AIWriter({
   const [brief, setBrief] = useState('');
   const [facts, setFacts] = useState('');
   const [apiKey, setApiKey] = useState('');
+  const [keyOpen, setKeyOpen] = useState(false);
   const [provider, setProvider] = useState<'openai' | 'gemini'>('openai');
   const [tone, setTone] = useState<WriterInput['tone']>('Degen × builder');
   const [topic, setTopic] = useState<WriterInput['topic']>('Web3 take');
@@ -144,47 +151,70 @@ export default function AIWriter({
             Đã cấu hình {connection.model} · Dùng API key riêng của bạn.
           </p>
         )}
-        <details className="aikeydetails">
-          <summary>+ Dùng API key AI riêng</summary>
-          <div className="aikeyrow">
-            <div>
-              <label id="ai-provider-label">Nhà cung cấp</label>
-              <Select
-                value={provider}
-                onValueChange={(v) =>
-                  v && setProvider(v as 'openai' | 'gemini')
-                }
-                disabled={busy}
-              >
-                <SelectTrigger aria-labelledby="ai-provider-label">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="openai">OpenAI</SelectItem>
-                  <SelectItem value="gemini">Gemini</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="aikeyaction">
+          <button
+            type="button"
+            className="action"
+            aria-expanded={keyOpen}
+            onClick={() => setKeyOpen((open) => !open)}
+          >
+            <KeyRound size={16} /> {apiKey ? 'API key đã thêm' : 'Add API key'}
+          </button>
+          {apiKey && (
+            <button
+              type="button"
+              className="textbutton"
+              onClick={() => {
+                setApiKey('');
+                setKeyOpen(false);
+              }}
+            >
+              Xóa key
+            </button>
+          )}
+        </div>
+        {keyOpen && (
+          <div className="aikeydetails">
+            <div className="aikeyrow">
+              <div>
+                <label id="ai-provider-label">Nhà cung cấp</label>
+                <Select
+                  value={provider}
+                  onValueChange={(v) =>
+                    v && setProvider(v as 'openai' | 'gemini')
+                  }
+                  disabled={busy}
+                >
+                  <SelectTrigger aria-labelledby="ai-provider-label">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="openai">OpenAI</SelectItem>
+                    <SelectItem value="gemini">Gemini</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <label htmlFor="ai-key">
+                API key
+                <input
+                  id="ai-key"
+                  type="password"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  maxLength={512}
+                  disabled={busy}
+                  placeholder={provider === 'openai' ? 'sk-…' : 'AIza…'}
+                />
+              </label>
             </div>
-            <label htmlFor="ai-key">
-              API key
-              <input
-                id="ai-key"
-                type="password"
-                autoComplete="off"
-                spellCheck={false}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                maxLength={512}
-                disabled={busy}
-                placeholder={provider === 'openai' ? 'sk-…' : 'AIza…'}
-              />
-            </label>
+            <p className="aikeynote">
+              Không lưu vào database hoặc GitHub. Key chỉ nằm trong tab này và
+              được gửi tới server khi bạn bấm tạo bài.
+            </p>
           </div>
-          <p className="aikeynote">
-            Không lưu vào database hoặc GitHub. Key chỉ nằm trong tab này và
-            được gửi tới server khi bạn bấm tạo bài.
-          </p>
-        </details>
+        )}
         <label htmlFor="ai-brief">Ý tưởng hoặc bài mẫu</label>
         <textarea
           id="ai-brief"
