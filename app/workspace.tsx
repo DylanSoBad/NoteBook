@@ -1429,20 +1429,44 @@ export default function Workspace() {
                   tính link và emoji theo quy tắc riêng.
                 </div>
               )}
-              {editing.kind !== 'note' && (
-                <label>
-                  {editing.kind === 'post'
-                    ? 'Link bài đã đăng / nguồn'
-                    : 'Đường dẫn'}
-                  <input
-                    type="url"
-                    maxLength={2000}
-                    value={editing.url}
-                    onChange={(e) => patch('url', e.target.value)}
-                    placeholder="https://…"
-                  />
-                </label>
-              )}
+              {editing.kind !== 'note' &&
+                (editing.kind === 'mint' ? (
+                  <div className="formgrid">
+                    <label>
+                      Mint link
+                      <input
+                        type="url"
+                        maxLength={2000}
+                        value={editing.url}
+                        onChange={(e) => patch('url', e.target.value)}
+                        placeholder="https://mint.project.xyz"
+                      />
+                    </label>
+                    <label>
+                      X project link
+                      <input
+                        type="url"
+                        maxLength={2000}
+                        value={editing.xUrl || ''}
+                        onChange={(e) => patch('xUrl', e.target.value)}
+                        placeholder="https://x.com/project"
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <label>
+                    {editing.kind === 'post'
+                      ? 'Link bài đã đăng / nguồn'
+                      : 'Đường dẫn'}
+                    <input
+                      type="url"
+                      maxLength={2000}
+                      value={editing.url}
+                      onChange={(e) => patch('url', e.target.value)}
+                      placeholder="https://…"
+                    />
+                  </label>
+                ))}
               {editing.kind === 'post' && editing.status === 'Đã đăng' && (
                 <fieldset className="metricsform">
                   <legend>Số liệu bài đăng · nhập tay</legend>
