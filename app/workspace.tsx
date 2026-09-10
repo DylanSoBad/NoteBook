@@ -166,6 +166,7 @@ export default function Workspace() {
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<Entry | null>(null);
+  const [viewingMint, setViewingMint] = useState<Entry | null>(null);
   const [deleting, setDeleting] = useState<Entry | null>(null);
   const [filter, setFilter] = useState('Tất cả');
   const [tab, setTab] = useState('daily');
@@ -868,7 +869,7 @@ export default function Workspace() {
                   {dayMints.slice(0, 3).map((mint) => (
                     <button
                       className="mintchip"
-                      onClick={() => setEditing({ ...mint })}
+                      onClick={() => setViewingMint(mint)}
                       key={mint.id}
                       title={[mint.chain, mint.time, mint.price]
                         .filter(Boolean)
@@ -1184,7 +1185,7 @@ export default function Workspace() {
                     onChange={(e) => patch('date', e.target.value)}
                   />
                 </label>
-                {editing.kind !== 'note' && (
+                {editing.kind !== 'note' && editing.kind !== 'mint' && (
                   <label>
                     Giờ (UTC+7)
                     <input
@@ -1195,7 +1196,7 @@ export default function Workspace() {
                   </label>
                 )}
               </div>
-              {editing.kind !== 'note' && (
+              {editing.kind !== 'note' && editing.kind !== 'mint' && (
                 <div className="formgrid">
                   <label>
                     Trạng thái
@@ -1227,7 +1228,7 @@ export default function Workspace() {
                   )}
                 </div>
               )}
-              {['mint', 'airdrop', 'wl'].includes(editing.kind) && (
+              {['airdrop', 'wl'].includes(editing.kind) && (
                 <div className="formgrid">
                   <label>
                     Chain
@@ -1398,22 +1399,24 @@ export default function Workspace() {
                   </div>
                 </>
               )}
-              <label>
-                {editing.kind === 'post'
-                  ? 'Nội dung tiếng Anh'
-                  : 'Ghi chú / nội dung'}
-                <textarea
-                  rows={editing.kind === 'post' ? 7 : 4}
-                  maxLength={16000}
-                  value={editing.body}
-                  onChange={(e) => patch('body', e.target.value)}
-                  placeholder={
-                    editing.kind === 'post'
-                      ? 'What did you learn, build, or notice today?'
-                      : 'Chi tiết, checklist, ý tưởng…'
-                  }
-                />
-              </label>
+              {editing.kind !== 'mint' && (
+                <label>
+                  {editing.kind === 'post'
+                    ? 'Nội dung tiếng Anh'
+                    : 'Ghi chú / nội dung'}
+                  <textarea
+                    rows={editing.kind === 'post' ? 7 : 4}
+                    maxLength={16000}
+                    value={editing.body}
+                    onChange={(e) => patch('body', e.target.value)}
+                    placeholder={
+                      editing.kind === 'post'
+                        ? 'What did you learn, build, or notice today?'
+                        : 'Chi tiết, checklist, ý tưởng…'
+                    }
+                  />
+                </label>
+              )}
               {editing.kind === 'post' && (
                 <div
                   className={
@@ -1433,13 +1436,13 @@ export default function Workspace() {
                 (editing.kind === 'mint' ? (
                   <div className="formgrid">
                     <label>
-                      Mint link
+                      OpenSea link
                       <input
                         type="url"
                         maxLength={2000}
                         value={editing.url}
                         onChange={(e) => patch('url', e.target.value)}
-                        placeholder="https://mint.project.xyz"
+                        placeholder="https://opensea.io/collection/project"
                       />
                     </label>
                     <label>
@@ -1498,7 +1501,7 @@ export default function Workspace() {
                 </p>
               )}
               <div className="editoractions">
-                {['mint', 'airdrop'].includes(editing.kind) && (
+                {editing.kind === 'airdrop' && (
                   <button
                     type="button"
                     className="textbutton"
@@ -1506,7 +1509,7 @@ export default function Workspace() {
                       setEditing({
                         ...blank('profit', date),
                         title: editing.title,
-                        category: editing.kind === 'mint' ? 'NFT' : 'Airdrop',
+                        category: 'Airdrop',
                         chain: editing.chain,
                         url: editing.url,
                         body:
@@ -1566,6 +1569,50 @@ export default function Workspace() {
               </div>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={!!viewingMint}
+        onOpenChange={(open) => !open && setViewingMint(null)}
+      >
+        <DialogContent className="mintlinks">
+          <DialogTitle>{viewingMint?.title}</DialogTitle>
+          <DialogDescription>Links của dự án</DialogDescription>
+          <div className="mintlinkgrid">
+            {viewingMint?.xUrl ? (
+              <a
+                href={viewingMint.xUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                X project ↗
+              </a>
+            ) : (
+              <span>Chưa có X project link</span>
+            )}
+            {viewingMint?.url ? (
+              <a
+                href={viewingMint.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                OpenSea ↗
+              </a>
+            ) : (
+              <span>Chưa có OpenSea link</span>
+            )}
+          </div>
+          <button
+            className="textbutton"
+            onClick={() => {
+              if (viewingMint) {
+                setEditing({ ...viewingMint });
+                setViewingMint(null);
+              }
+            }}
+          >
+            Chỉnh sửa thông tin
+          </button>
         </DialogContent>
       </Dialog>
       <AlertDialog
