@@ -45,15 +45,11 @@ import {
 } from 'lucide-react';
 import ProfitPanel, { MoneyField } from './profit-panel';
 import AIWriter from './ai-writer';
-import CoinCalculator, {
-  ProfitConversion,
-  ConversionDetails,
-  conversionLabels,
-} from './coin-calculator';
+import CoinCalculator from './coin-calculator';
 import WLPanel from './wl-panel';
 import './upgrade.css';
-import { type Conversion, type MoneyKey, moneyKeys } from '@/lib/coins';
-import { money, net, profitTotals } from '@/lib/profit';
+import { type Conversion } from '@/lib/coins';
+import { money, profitTotals } from '@/lib/profit';
 import {
   type Entry,
   type Kind,
@@ -64,7 +60,6 @@ import {
   shift,
   validDate,
   validateEntry,
-  profitCategories,
 } from '@/lib/model';
 
 const categories = ['Web3', 'Airdrop', 'NFT', 'IRL', 'X', 'Builder'];
@@ -236,24 +231,8 @@ export default function Workspace() {
   function patch(field: keyof Entry, value: string | number) {
     setEditing((e) => {
       if (!e) return e;
-      const next = { ...e, [field]: value };
-      if (moneyKeys.includes(field as MoneyKey) && e.conversions) {
-        next.conversions = { ...e.conversions };
-        delete next.conversions[field as MoneyKey];
-      }
-      return next;
+      return { ...e, [field]: value };
     });
-  }
-  function applyConversion(key: MoneyKey, c: Conversion) {
-    setEditing((e) =>
-      e
-        ? {
-            ...e,
-            [key]: c.usdCents,
-            conversions: { ...e.conversions, [key]: c },
-          }
-        : e,
-    );
   }
   function profitFromCoin(c: Conversion) {
     setEditing({
@@ -1152,82 +1131,93 @@ export default function Workspace() {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
-                if (await save(editing)) setEditing(null);
+                const entry =
+                  editing.kind === 'profit'
+                    ? {
+                        ...editing,
+                        title:
+                          editing.title.trim() ||
+                          editing.body.trim().slice(0, 250) ||
+                          'Profit ' + editing.date,
+                        status: 'Đã chốt',
+                        category: 'NFT',
+                        feeCents: 0,
+                        chain: '',
+                        url: '',
+                      }
+                    : editing;
+                if (await save(entry)) setEditing(null);
               }}
             >
-              <label>
-                {editing.kind === 'profit' ? 'Dự án / giao dịch' : 'Tiêu đề'}
-                <input
-                  required
-                  maxLength={250}
-                  value={editing.title}
-                  onChange={(e) => patch('title', e.target.value)}
-                  placeholder={
-                    editing.kind === 'target'
-                      ? 'Ví dụ: Replies có chất lượng'
-                      : 'Nhập tiêu đề…'
-                  }
-                />
-              </label>
-              <div className="formgrid">
+              {editing.kind !== 'profit' && (
                 <label>
-                  {editing.kind === 'airdrop'
-                    ? 'Deadline'
-                    : editing.kind === 'profit'
-                      ? editing.status === 'Đã chốt'
-                        ? 'Ngày chốt'
-                        : 'Ngày bắt đầu'
-                      : 'Ngày'}
+                  Tiêu đề
                   <input
                     required
-                    type="date"
-                    value={editing.date}
-                    onChange={(e) => patch('date', e.target.value)}
+                    maxLength={250}
+                    value={editing.title}
+                    onChange={(e) => patch('title', e.target.value)}
+                    placeholder={
+                      editing.kind === 'target'
+                        ? 'Ví dụ: Replies có chất lượng'
+                        : 'Nhập tiêu đề…'
+                    }
                   />
                 </label>
-                {editing.kind !== 'note' && editing.kind !== 'mint' && (
-                  <label>
-                    Giờ (UTC+7)
-                    <input
-                      type="time"
-                      value={editing.time}
-                      onChange={(e) => patch('time', e.target.value)}
-                    />
-                  </label>
-                )}
-              </div>
-              {editing.kind !== 'note' && editing.kind !== 'mint' && (
+              )}
+              {editing.kind !== 'profit' && (
                 <div className="formgrid">
                   <label>
-                    Trạng thái
-                    <Choice
-                      label="Trạng thái"
-                      value={editing.status}
-                      options={states[editing.kind]}
-                      onChange={(v) => patch('status', v)}
+                    {editing.kind === 'airdrop' ? 'Deadline' : 'Ngày'}
+                    <input
+                      required
+                      type="date"
+                      value={editing.date}
+                      onChange={(e) => patch('date', e.target.value)}
                     />
                   </label>
-                  {['task', 'post', 'target', 'profit'].includes(
-                    editing.kind,
-                  ) && (
+                  {editing.kind !== 'note' && editing.kind !== 'mint' && (
                     <label>
-                      Chủ đề
-                      <Choice
-                        label="Chủ đề"
-                        value={editing.category}
-                        options={
-                          editing.kind === 'post'
-                            ? postCategories
-                            : editing.kind === 'profit'
-                              ? profitCategories
-                              : categories
-                        }
-                        onChange={(v) => patch('category', v)}
+                      Giờ (UTC+7)
+                      <input
+                        type="time"
+                        value={editing.time}
+                        onChange={(e) => patch('time', e.target.value)}
                       />
                     </label>
                   )}
                 </div>
               )}
+              {editing.kind !== 'note' &&
+                editing.kind !== 'mint' &&
+                editing.kind !== 'profit' && (
+                  <div className="formgrid">
+                    <label>
+                      Trạng thái
+                      <Choice
+                        label="Trạng thái"
+                        value={editing.status}
+                        options={states[editing.kind]}
+                        onChange={(v) => patch('status', v)}
+                      />
+                    </label>
+                    {['task', 'post', 'target'].includes(editing.kind) && (
+                      <label>
+                        Chủ đề
+                        <Choice
+                          label="Chủ đề"
+                          value={editing.category}
+                          options={
+                            editing.kind === 'post'
+                              ? postCategories
+                              : categories
+                          }
+                          onChange={(v) => patch('category', v)}
+                        />
+                      </label>
+                    )}
+                  </div>
+                )}
               {['airdrop', 'wl'].includes(editing.kind) && (
                 <div className="formgrid">
                   <label>
@@ -1330,80 +1320,28 @@ export default function Workspace() {
                 </div>
               )}
               {editing.kind === 'profit' && (
-                <>
-                  <details className="coinconversiontools">
-                    <summary>Quy đổi ETH, SOL hoặc coin khác → USD</summary>
-                    <ProfitConversion onApply={applyConversion} />
-                  </details>
-                  {editing.conversions && (
-                    <div className="savedsnapshots">
-                      {moneyKeys.map((key) =>
-                        editing.conversions?.[key] ? (
-                          <section key={key}>
-                            <h3>
-                              {conversionLabels[key]} · Quy đổi đã áp dụng
-                            </h3>
-                            <ConversionDetails
-                              value={editing.conversions[key]!}
-                            />
-                          </section>
-                        ) : null,
-                      )}
-                    </div>
-                  )}
-                  <p className="subtle">
-                    Mỗi mục là một giao dịch hoặc khoản thu. Nếu bán một phần,
-                    chỉ nhập vốn tương ứng phần đã bán. Đánh dấu “Đã chốt” khi
-                    khoản này hoàn tất; phí nhập riêng, chưa trừ vào tiền thu.
-                  </p>
-                  <div className="formgrid">
-                    <MoneyField
-                      key={editing.id + 'income'}
-                      label="Tiền thu trước phí (USD)"
-                      cents={editing.incomeCents ?? 0}
-                      onChange={(n) => patch('incomeCents', n)}
-                    />
-                    <MoneyField
-                      key={editing.id + 'cost'}
-                      label="Vốn / chi phí chưa gồm phí (USD)"
-                      cents={editing.costCents ?? 0}
-                      onChange={(n) => patch('costCents', n)}
-                    />
-                    <MoneyField
-                      key={editing.id + 'fee'}
-                      label="Phí: gas, giao dịch… (USD)"
-                      cents={editing.feeCents ?? 0}
-                      onChange={(n) => patch('feeCents', n)}
-                    />
-                    <label>
-                      Chain (nếu có)
-                      <input
-                        maxLength={250}
-                        value={editing.chain}
-                        onChange={(e) => patch('chain', e.target.value)}
-                        placeholder="Ethereum, Solana…"
-                      />
-                    </label>
-                  </div>
-                  <div className="profitpreview">
-                    {editing.status === 'Đã chốt'
-                      ? 'Profit đã chốt'
-                      : 'Chênh lệch tạm tính · chưa cộng vào profit'}
-                    <strong
-                      className={net(editing) < 0 ? 'negative' : 'positive'}
-                    >
-                      {Number.isFinite(net(editing))
-                        ? money(net(editing))
-                        : 'Nhập số tiền hợp lệ'}
-                    </strong>
-                  </div>
-                </>
+                <div className="formgrid">
+                  <MoneyField
+                    key={editing.id + 'income'}
+                    label="Thu được (USD)"
+                    cents={editing.incomeCents ?? 0}
+                    onChange={(n) => patch('incomeCents', n)}
+                  />
+                  <MoneyField
+                    key={editing.id + 'cost'}
+                    label="Bỏ ra (USD)"
+                    cents={editing.costCents ?? 0}
+                    onChange={(n) => patch('costCents', n)}
+                  />
+                </div>
               )}
               {editing.kind !== 'mint' && (
                 <label>
                   {editing.kind === 'post'
                     ? 'Nội dung tiếng Anh'
-                    : 'Ghi chú / nội dung'}
+                    : editing.kind === 'profit'
+                      ? 'Ghi chú'
+                      : 'Ghi chú / nội dung'}
                   <textarea
                     rows={editing.kind === 'post' ? 7 : 4}
                     maxLength={16000}
@@ -1412,7 +1350,9 @@ export default function Workspace() {
                     placeholder={
                       editing.kind === 'post'
                         ? 'What did you learn, build, or notice today?'
-                        : 'Chi tiết, checklist, ý tưởng…'
+                        : editing.kind === 'profit'
+                          ? 'Ví dụ: GTD mint, bán NFT, nhận airdrop…'
+                          : 'Chi tiết, checklist, ý tưởng…'
                     }
                   />
                 </label>
@@ -1433,6 +1373,7 @@ export default function Workspace() {
                 </div>
               )}
               {editing.kind !== 'note' &&
+                editing.kind !== 'profit' &&
                 (editing.kind === 'mint' ? (
                   <div className="formgrid">
                     <label>
